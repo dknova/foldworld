@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>Foldworld · the carousel book of Odile Penhallow</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Gaegu:wght@400;700&family=Pixelify+Sans:wght@400..700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #2a2622;
+        --cream: #f3ead8;
+        --paper: #e9dfcb;
+        --spark: #ff4f8b;
+        --pix: "Pixelify Sans", ui-monospace, monospace;
+        --hand: "Gaegu", "Comic Sans MS", cursive;
+        --ui: #f7f0e2;
+        box-sizing: border-box;
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      html {
+        scroll-padding-top: env(safe-area-inset-top, 0px);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        background: #3b322b;
+        color: var(--ui);
+        touch-action: none;
+        overscroll-behavior: none;
+      }
+      body {
+        font-family: var(--hand);
+      }
+      button {
+        font: inherit;
+        color: inherit;
+        background: none;
+        border: 0;
+        cursor: pointer;
+      }
+      #gl {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: grab;
+      }
+      .chrome {
+        position: fixed;
+        z-index: 45;
+        opacity: 0;
+        transition: opacity 0.8s 0.2s;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+      }
+      html.open .chrome {
+        opacity: 1;
+      }
+      #mark {
+        left: 26px;
+        top: calc(22px + env(safe-area-inset-top, 0px));
+      }
+      #mark b {
+        display: block;
+        font: 600 23px/1 var(--pix);
+      }
+      #mark b i {
+        font-style: normal;
+        color: var(--spark);
+      }
+      #mark span {
+        display: block;
+        font: 700 16px/1.1 var(--hand);
+        margin-top: 5px;
+      }
+      #chap {
+        left: 26px;
+        bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        display: flex;
+        align-items: flex-end;
+        gap: 16px;
+      }
+      #tabs {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        height: 34px;
+      }
+      #tabs button {
+        width: 30px;
+        height: 24px;
+        border-radius: 5px 5px 2px 2px;
+        font: 600 11px/1 var(--pix);
+        color: #fffaf0;
+        transition: height 0.4s cubic-bezier(0.3, 1.5, 0.4, 1);
+        box-shadow:
+          inset 0 -2px 0 rgba(0, 0, 0, 0.18),
+          0 2px 4px rgba(0, 0, 0, 0.25);
+        position: relative;
+      }
+      #tabs button.on {
+        height: 34px;
+      }
+      #tabs button.on::after {
+        content: "";
+        position: absolute;
+        left: 5px;
+        right: 5px;
+        bottom: -7px;
+        height: 3px;
+        border-radius: 2px;
+        background: var(--spark);
+      }
+      #chapname {
+        font: 500 17px/1 var(--pix);
+        padding-bottom: 4px;
+        min-width: 16ch;
+      }
+      #chapname small {
+        display: block;
+        font: 700 15px/1 var(--hand);
+        opacity: 0.85;
+        margin-bottom: 5px;
+      }
+      #zoom {
+        right: 24px;
+        bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+        display: flex;
+        gap: 2px;
+        background: var(--cream);
+        color: var(--ink);
+        border-radius: 20px;
+        padding: 4px;
+        text-shadow: none;
+        box-shadow: 0 3px 8px rgba(20, 10, 0, 0.3);
+      }
+      #zoom button {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        font: 600 18px/1 var(--pix);
+      }
+      #zoom button:hover {
+        background: rgba(0, 0, 0, 0.07);
+      }
+      #hint {
+        left: 50%;
+        top: calc(24px + env(safe-area-inset-top, 0px));
+        transform: translateX(-50%);
+        font: 700 17px/1 var(--hand);
+        white-space: nowrap;
+        pointer-events: none;
+        transition: opacity 0.8s;
+      }
+      html.turned #hint {
+        opacity: 0 !important;
+      }
+      .tag {
+        display: inline-block;
+        background: var(--cream);
+        color: var(--ink);
+        font: 500 18px/1 var(--pix);
+        padding: 12px 18px 12px 28px;
+        clip-path: polygon(12px 0, 100% 0, 100% 100%, 12px 100%, 0 50%);
+        text-shadow: none;
+        position: relative;
+      }
+      .tag::before {
+        content: "";
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        width: 6px;
+        height: 6px;
+        margin-top: -3px;
+        border-radius: 50%;
+        background: #3b322b;
+      }
+      #cover {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        transition: opacity 0.3s 1.5s;
+      }
+      .board {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 50.2%;
+        background: #2c5653 url(assets/tex/cloth.jpg) 0 0/420px;
+        transition: transform 1.5s cubic-bezier(0.66, 0, 0.22, 1);
+        overflow: hidden;
+      }
+      .board.l {
+        left: 0;
+        box-shadow: inset -10px 0 18px -10px rgba(0, 0, 0, 0.5);
+      }
+      .board.r {
+        right: 0;
+        box-shadow: inset 10px 0 18px -10px rgba(0, 0, 0, 0.5);
+      }
+      .board::before {
+        content: "";
+        position: absolute;
+        inset: 26px;
+        border: 2px solid rgba(0, 0, 0, 0.22);
+      }
+      .board::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          120% 90% at 50% 45%,
+          rgba(255, 240, 220, 0.07),
+          rgba(0, 0, 0, 0.3)
+        );
+      }
+      .ribbon {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 66%;
+        height: 28px;
+        background: var(--spark);
+        z-index: 1;
+        box-shadow:
+          inset 0 3px 0 rgba(255, 255, 255, 0.18),
+          inset 0 -3px 0 rgba(0, 0, 0, 0.12);
+      }
+      #label {
+        position: absolute;
+        left: 50%;
+        top: 44%;
+        transform: translate(-50%, -50%);
+        width: min(600px, 88vw);
+        padding: 34px 16px 30px;
+        background: var(--paper) url(assets/tex/rag.jpg) 0 0/360px;
+        color: var(--ink);
+        text-align: center;
+        z-index: 3;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+        outline: 1.5px solid rgba(42, 38, 34, 0.3);
+        outline-offset: -12px;
+        transition: opacity 0.4s;
+      }
+      #label .k {
+        font: 700 19px/1 var(--hand);
+        color: #6f5a3c;
+      }
+      #label h1 {
+        font: 600 clamp(48px, 9vw, 90px)/1.05 var(--pix);
+        margin: 10px 0 8px;
+      }
+      #label h1 i {
+        font-style: normal;
+        color: var(--spark);
+      }
+      #label .by {
+        font: 700 21px/1.1 var(--hand);
+      }
+      #pct {
+        font: 500 14px/1 var(--pix);
+        color: #6f5a3c;
+        letter-spacing: 0.06em;
+        margin-top: 16px;
+      }
+      #pop {
+        display: flex;
+        gap: 9px;
+        justify-content: center;
+        margin-top: 14px;
+      }
+      #pop i {
+        width: 24px;
+        height: 20px;
+        clip-path: polygon(50% 0, 100% 100%, 0 100%);
+        transform: scaleY(0.15);
+        transform-origin: 50% 100%;
+        transition: transform 0.6s cubic-bezier(0.3, 1.7, 0.4, 1);
+      }
+      #pop i.up {
+        transform: none;
+      }
+    /* Pink bow button on the horizontal ribbon */
+#open {
+  position: absolute;
+  left: 50%;
+  top: calc(66% + 14px);
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  width: 110px;
+  height: 100px;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .5s;
+  filter: drop-shadow(0 5px 5px rgba(0, 0, 0, .25));
+}
+
+html.ready #open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Keep the bow above the ribbon */
+#open .bow {
+  position: relative;
+  display: block;
+  width: 100px;
+  height: 76px;
+  transition: transform .3s ease;
+}
+
+#open:hover .bow {
+  transform: scale(1.12) rotate(-3deg);
+}
+
+/* The two loops */
+#open .loop {
+  position: absolute;
+  top: 8px;
+  width: 43px;
+  height: 34px;
+  background: linear-gradient(
+    145deg,
+    #ffb4d0 0%,
+    #ff78ad 45%,
+    #ed367d 100%
+  );
+  border: 2px solid #d92d70;
+  box-shadow: inset 0 3px 4px rgba(255,255,255,.45);
+}
+
+#open .loop.left {
+  left: 6px;
+  border-radius: 80% 20% 60% 35%;
+  transform: rotate(22deg);
+}
+
+#open .loop.right {
+  right: 6px;
+  border-radius: 20% 80% 35% 60%;
+  transform: rotate(-22deg);
+}
+
+/* Centre knot */
+#open .knot {
+  position: absolute;
+  z-index: 3;
+  left: 39px;
+  top: 19px;
+  width: 23px;
+  height: 25px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #ffc4dc, #f74791 65%, #c91d61);
+  border: 2px solid #df3478;
+  box-shadow: inset 2px 1px 3px rgba(255,255,255,.55);
+}
+
+/* Flowing ribbon tails */
+#open .tail {
+  position: absolute;
+  top: 38px;
+  width: 25px;
+  height: 35px;
+  background: linear-gradient(90deg, #ff9cc4, #f34389);
+  border: 1px solid #df3478;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+}
+
+#open .tail.left {
+  left: 23px;
+  transform: rotate(17deg);
+}
+
+#open .tail.right {
+  right: 23px;
+  transform: rotate(-17deg);
+}
+
+/* Gentle floating animation */
+@keyframes bowFloat {
+  0%, 100% {
+    margin-top: 0;
+  }
+  50% {
+    margin-top: -5px;
+  }
+}
+
+html.ready #open .bow {
+  animation: bowFloat 2s ease-in-out infinite;
+}
+
+#open:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 5px;
+  border-radius: 12px;
+}
+
+/* Instruction below the pink bow */
+#open::after {
+  content: "Untie the bow";
+  position: absolute;
+  top: 82px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180px;
+  color: #f7f0e2;
+  font-family: var(--pix);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55);
+  animation: bowTextPulse 2s ease-in-out infinite;
+}
+
+@keyframes bowTextPulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  #open::after {
+    font-size: 12px;
+    top: 78px;
+  }
+}
+      html.opening .board.l {
+        transform: translateX(-102%);
+      }
+      html.opening .board.r {
+        transform: translateX(102%);
+      }
+      html.opening #label,
+      html.opening #open {
+        opacity: 0;
+      }
+      html.opening #cover {
+        opacity: 0;
+        pointer-events: none;
+      }
+      html.open #cover {
+        display: none;
+      }
+      #card {
+        position: fixed;
+        inset: 0;
+        z-index: 70;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+      }
+      #card .scrim {
+        position: absolute;
+        inset: 0;
+        background: rgba(36, 26, 18, 0.45);
+        opacity: 0;
+        transition: opacity 0.4s;
+      }
+      #card.on {
+        pointer-events: auto;
+      }
+      #card.on .scrim {
+        opacity: 1;
+      }
+      #fold {
+        position: relative;
+        width: min(400px, 86vw);
+        background: var(--paper);
+        color: var(--ink);
+        padding: 26px 26px 24px;
+        border-radius: 4px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        transform: translateY(40px) rotateX(18deg) scale(0.9);
+        opacity: 0;
+        transition:
+          transform 0.6s cubic-bezier(0.2, 1.25, 0.3, 1),
+          opacity 0.3s;
+      }
+      #card.on #fold {
+        transform: none;
+        opacity: 1;
+      }
+      #fold::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 10px;
+        background: var(--cc, #c9973f);
+      }
+      #fold small {
+        font: 500 12px/1 var(--pix);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #7b6545;
+      }
+      #fold h3 {
+        font: 600 27px/1.05 var(--pix);
+        margin: 8px 0 10px;
+      }
+      #fold p {
+        font: 700 20px/1.22 var(--hand);
+      }
+      #fold p em {
+        font-style: normal;
+        color: #d8336f;
+      }
+      #fold .x {
+        position: absolute;
+        right: 10px;
+        top: 16px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--cream);
+        font: 600 15px/1 var(--pix);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+      }
+      @media (max-width: 760px) {
+        #hint {
+          top: calc(70px + env(safe-area-inset-top, 0px));
+          font-size: 15px;
+        }
+        #mark b {
+          font-size: 19px;
+        }
+        #chap {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+          left: 18px;
+        }
+        #tabs button {
+          width: 26px;
+        }
+        #zoom {
+          right: 16px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition-duration: 0.01s !important;
+        }
+      }
+      #stage {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        background: #3b322b;
+        transform-origin: 50% 50%;
+        transition: transform 0.9s cubic-bezier(0.7, 0, 0.2, 1);
+      }
+      #colo {
+        right: 24px;
+        top: calc(20px + env(safe-area-inset-top, 0px));
+      }
+      #tip {
+        position: fixed;
+        z-index: 46;
+        left: 0;
+        top: 0;
+        pointer-events: none;
+        background: var(--cream);
+        color: var(--ink);
+        font: 700 16px/1 var(--hand);
+        padding: 6px 10px 5px;
+        border-radius: 3px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+        opacity: 0;
+        transform: translate(-50%, -160%) scale(0.85);
+        transition:
+          opacity 0.2s,
+          transform 0.25s cubic-bezier(0.3, 1.6, 0.4, 1);
+        white-space: nowrap;
+      }
+      #tip.on {
+        opacity: 1;
+        transform: translate(-50%, -160%) scale(1);
+      }
+      #tip i {
+        font-style: normal;
+        color: #d8336f;
+        font-family: var(--pix);
+        font-size: 12px;
+        margin-left: 6px;
+      }
+      #art {
+        margin: 14px auto 12px;
+        background-repeat: no-repeat;
+        filter: drop-shadow(0 6px 4px rgba(0, 0, 0, 0.28));
+      }
+      #colophon {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        background: #d9cdb5 url(assets/tex/rag.jpg) 0 0/420px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      #colophon .txt {
+        position: absolute;
+        left: 60%;
+        top: 50%;
+        transform: translateY(-50%);
+        width: min(500px, 35vw);
+        color: var(--ink);
+        opacity: 0;
+        transition: opacity 0.5s 0.35s;
+      }
+      #colophon h2 {
+        font: 600 58px/1 var(--pix);
+        margin-bottom: 20px;
+      }
+      #colophon h2 i {
+        font-style: normal;
+        color: var(--spark);
+      }
+      #colophon p {
+        font: 700 22px/1.3 var(--hand);
+        margin-bottom: 14px;
+      }
+      #colophon p em {
+        font-style: normal;
+        color: #d8336f;
+      }
+      #colox {
+        position: absolute;
+        right: 24px;
+        top: calc(20px + env(safe-area-inset-top, 0px));
+        z-index: 2;
+      }
+      html.colo #colophon {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      html.colo #colophon .txt {
+        opacity: 1;
+      }
+      html.colo #stage {
+        transform: translate(-21vw, 0) scale(0.5) rotate(-2.2deg);
+        border-radius: 4px;
+        box-shadow:
+          0 0 0 14px #f6efe1,
+          0 24px 50px rgba(40, 25, 10, 0.35);
+        z-index: 31;
+      }
+      html.colo .chrome {
+        opacity: 0 !important;
+        pointer-events: none;
+      }
+      @media (max-width: 760px) {
+        html.colo #stage {
+          transform: translate(0, calc(60px - 27vh)) scale(0.46) rotate(-2deg);
+        }
+        #colophon .txt {
+          left: 24px;
+          right: 24px;
+          width: auto;
+          top: auto;
+          bottom: 22px;
+          transform: none;
+        }
+        #colophon h2 {
+          font-size: 30px;
+          margin-bottom: 8px;
+        }
+        #colophon p {
+          font-size: 15.5px;
+          line-height: 1.25;
+          margin-bottom: 7px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <canvas
+        id="gl"
+        aria-label="A paper carousel book in six chapters. Scroll, drag or use the arrow keys to turn it."
+      ></canvas>
+    </div>
+    <header class="chrome" id="mark">
+      <b>Fold<i>·</i>world</b><span>Odile Penhallow, paper engineer</span>
+    </header>
+    <nav class="chrome" id="chap" aria-label="Chapters">
+      <div id="tabs"></div>
+      <div id="chapname"></div>
+    </nav>
+    <div class="chrome" id="zoom">
+      <button id="zout" aria-label="Zoom out">−</button
+      ><button id="zin" aria-label="Zoom in">+</button>
+    </div>
+    <div class="chrome" id="hint">
+      ~ scroll, drag or swipe to turn the book ~
+    </div>
+    <button class="chrome" id="colo" aria-label="Open the colophon">
+      <span class="tag">Colophon</span>
+    </button>
+    <div id="tip"></div>
+    <div id="colophon" aria-hidden="true">
+      <button id="colox"><span class="tag">Close the colophon</span></button>
+      <div class="txt">
+        <h2>Colophon<i>.</i></h2>
+        <p>
+          Foldworld is a carousel book: six pages tied back to back so they open
+          into a star of little rooms. Each room is a chapter of
+          <em>Odile Penhallow</em>&rsquo;s work as a paper engineer.
+        </p>
+        <p>
+          Everything you see is paper: folded, scored and stood up in three.js.
+          The paper, the props and Odile herself were drawn for this book, then
+          cut out and given thickness in code.
+        </p>
+        <p>
+          Set in Pixelify Sans and Gaegu. Odile, her studio and Foldworld are
+          fictional, made up for this book.
+        </p>
+        <p>Write to <em>hello@foldworld.studio</em>. She replies on paper.</p>
+      </div>
+    </div>
+    <div id="card" aria-hidden="true">
+      <div class="scrim"></div>
+      <div id="fold" role="dialog" aria-modal="true">
+        <div id="art"></div>
+        <small id="cs"></small>
+        <h3 id="ch"></h3>
+        <p id="cp"></p>
+        <button class="x" aria-label="Close">✕</button>
+      </div>
+    </div>
+    <div id="cover">
+      <div class="board l"><div class="ribbon"></div></div>
+      <div class="board r"><div class="ribbon"></div></div>
+      <div id="label">
+        <div class="k">a carousel book in six chapters</div>
+        <h1>Fold<i>·</i>world</h1>
+        <div class="by">by Odile Penhallow, paper engineer</div>
+        <div id="pop"></div>
+        <div id="pct">FOLDING 000</div>
+      </div>
+    <button id="open" aria-label="Untie the pink bow and open Foldworld">
+  <span class="bow" aria-hidden="true">
+    <span class="loop left"></span>
+    <span class="loop right"></span>
+    <span class="tail left"></span>
+    <span class="tail right"></span>
+    <span class="knot"></span>
+  </span>
+</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="assets/main.js"></script>
+  </body>
+</html>
